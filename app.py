@@ -11,6 +11,8 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = -1
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+min_length = 1
+max_length = 15
 
 
 @app.after_request
@@ -33,8 +35,7 @@ logger = get_logger("app", split_extension(cursor.cursor_path, extension=".log")
 def index():
     cursor.reload_file()
     text = os.path.splitext(cursor['images'][str(cursor['file_index_to_read'])])[0]
-    min_length = cursor['min_length']
-    max_length = cursor['max_length']
+
     index = cursor['file_index_to_read']
     images_count = len(cursor['images'])
     use_case = cursor['use_case']
@@ -107,4 +108,4 @@ def action():
 
 
 if __name__ == '__main__':
-    app.run(port=PORT, debug=False)
+    app.run(host="0.0.0.0", port=PORT, debug=False)
