@@ -1,166 +1,159 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset='utf-8'>
-        <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-        <title>OCR labeling tool</title>
-        <meta name='viewport' content='width=device-width, initial-scale=1'>
-        <link rel="stylesheet" href="../static/css/style.css">
-    </head>
-    <body id="body">
-        <div class="img-container center">
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>OCR labeling tool</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="img-container">
             <img src="{{ url_for('static', filename='ocr_images/') }}{{ photo }}"
                  alt="{{ text }}">
         </div>
-        <div class="form-container center">
+        <div class="form-container">
             <form action="{{ url_for('action')}}"
                   method="post"
                   autocomplete="off"
                   enctype="multipart/form-data">
-                <div id="inputs-container" style="width:60%" class="center">
-                    <div style="display: flex; align-items: center">
-                        <span class="spacer"></span>
-                        <span style="margin: 0px 10px">{{ index }}/{{ images_count }}</span>
+                <div class="inputs-container">
+                    <div class="index-info">
+                        <span>{{ index }}/{{ images_count }}</span>
                     </div>
-                    <div style="display:flex; align-items:center">
+                    <div class="input-fields">
                         <label for="text_01">Text:</label>
-                        <input type="text" id="text_01" name="text_01" value={{ text_01 }} minlength="1" maxlength="25" style="width:35%" autofocus>
-                        <input type="text" id="text_02" name="text_02" minlength="1" maxlength="1" style="display:none; width:20px" value={{ text_02 }}>
-                        <input type="text" id="text_03" name="text_03" minlength="5" maxlength="5" style="display:none; width:10%" value={{ text_03 }}>
-                        <input type="submit"
-                               id="save"
-                               name="action"
-                               value="Save"
-                               onClick="return empty()">
+                        <input id="text_01" name="text_01" value={{ text_01 }} minlength="1" maxlength="25" autofocus style="width: 250px!important;">
+                    </div>
+                    <div class="buttons">
+                        <input type="submit" id="save" name="action" value="Save" onClick="return empty()">
                         <input type="submit" id="skip" name="action" value="Skip">
-                        <span class="spacer"></span>
                         <label for="jump">Jump to:</label>
-                        <input type="text"
-                               id="jump"
-                               name="jump_index"
-                               placeholder="Index"
-                               style="width:5%">
+                        <input type="text" id="jump" name="jump_index" placeholder="Index">
                         <input type="submit" name="action" value="Jump" onClick="return zero()">
                     </div>
                 </div>
             </form>
         </div>
-    </body>
+    </div>
+
     <script>
-    //submit form when 'Enter' key is pressed while in body
-    //document.getElementById("body").addEventListener("keyup", function (event) {
-    //    if (event.keyCode === 32) {
-    //        document.getElementById("skip").click();
-    //    }
-    //});
-
-    function empty() {
-        var value;
-        value = document.getElementById("text_01").value;
-        if (value == "") {
-            alert("Fill the field.");
-            return false;
-        };
-    }
-
-    function zero() {
-        var value;
-        value = document.getElementById("jump").value;
-        if (value == "0") {
-            alert("Index starts from 1.");
-            return false;
-        };
-    }
-        
-    function setLengths(e) {
-        const minLength = document.getElementById("text_min_len").value
-        const maxLength = document.getElementById("text_max_len").value
-
-        textElement = document.getElementById("text_01");
-        textElement.minLength = minLength;
-        textElement.maxLength = maxLength;
-
-    }
-
-
-    function onLoadCheckbox(check) {
-        if (check)
-        {
-            document.getElementById("text_01").style.display = "inline";
-            document.getElementById("text_01").style.width = "10%";
-            //document.getElementById("text_01").minLength = "2";
-            //document.getElementById("text_01").maxLength = "2";
-
-            document.getElementById("text_02").style.display = "inline";
-            document.getElementById("text_03").style.display = "inline";
-
-            document.getElementById("text_min_len").disabled = true;
-            document.getElementById("text_max_len").disabled = true;
-
+        //submit form when 'Enter' key is pressed while in body
+        //document.getElementById("body").addEventListener("keyup", function (event) {
+        //    if (event.keyCode === 32) {
+        //        document.getElementById("skip").click();
+        //    }
+        //});
+    
+        function empty() {
+            var value;
+            value = document.getElementById("text_01").value;
+            if (value == "") {
+                alert("Fill the field.");
+                return false;
+            };
         }
-        else
-        {
-            document.getElementById("text_01").style.width = "35%";
-            //document.getElementById("text_01").minLength = "1";
-            //document.getElementById("text_01").maxLength = "25";
-
-            document.getElementById("text_02").style.display = "none";
-            document.getElementById("text_03").style.display = "none";
-
-            document.getElementById("text_min_len").disabled = false;
-            document.getElementById("text_max_len").disabled = false;
+    
+        function zero() {
+            var value;
+            value = document.getElementById("jump").value;
+            if (value == "0") {
+                alert("Index starts from 1.");
+                return false;
+            };
         }
-
-    }
-
-    document.getElementById("body").onload = function(e) {
-        document.getElementById("text_min_len").value = {{min_length}}
-        document.getElementById("text_max_len").value = {{max_length}}
-        const check = {{use_case | tojson}} == "plate"
-        document.getElementById("plate-usual").checked = check
-        setLengths(e)
-        onLoadCheckbox(check)
-    }
-
-    document.getElementById("plate-usual").onchange = function(){
-        if (this.checked)
-        {
-            document.getElementById("text_01").style.display = "inline";
-            document.getElementById("text_01").style.width = "10%";
-            //document.getElementById("text_01").minLength = "2";
-            //document.getElementById("text_01").maxLength = "2";
-
-            document.getElementById("text_02").style.display = "inline";
-            document.getElementById("text_03").style.display = "inline";
-
-            document.getElementById("text_min_len").disabled = true;
-            document.getElementById("text_max_len").disabled = true;
-
-        
-            document.getElementById("text_min_len").value = 3
-            document.getElementById("text_max_len").value = 3
-
+            
+        function setLengths(e) {
+            const minLength = document.getElementById("text_min_len").value
+            const maxLength = document.getElementById("text_max_len").value
+    
+            textElement = document.getElementById("text_01");
+            textElement.minLength = minLength;
+            textElement.maxLength = maxLength;
+    
         }
-        else
-        {
-            document.getElementById("text_01").style.width = "35%";
-            //document.getElementById("text_01").minLength = "1";
-            //document.getElementById("text_01").maxLength = "25";
-
-            document.getElementById("text_02").style.display = "none";
-            document.getElementById("text_03").style.display = "none";
-
-            document.getElementById("text_min_len").disabled = false;
-            document.getElementById("text_max_len").disabled = false;
-
-            document.getElementById("text_min_len").value = 10
-            document.getElementById("text_max_len").value = 10
-
+    
+    
+        function onLoadCheckbox(check) {
+            if (check)
+            {
+                document.getElementById("text_01").style.display = "inline";
+                document.getElementById("text_01").style.width = "10%";
+                //document.getElementById("text_01").minLength = "2";
+                //document.getElementById("text_01").maxLength = "2";
+    
+                document.getElementById("text_02").style.display = "inline";
+                document.getElementById("text_03").style.display = "inline";
+    
+                document.getElementById("text_min_len").disabled = true;
+                document.getElementById("text_max_len").disabled = true;
+    
+            }
+            else
+            {
+                document.getElementById("text_01").style.width = "35%";
+                //document.getElementById("text_01").minLength = "1";
+                //document.getElementById("text_01").maxLength = "25";
+    
+                document.getElementById("text_02").style.display = "none";
+                document.getElementById("text_03").style.display = "none";
+    
+                document.getElementById("text_min_len").disabled = false;
+                document.getElementById("text_max_len").disabled = false;
+            }
+    
         }
-
-    }
-
-    document.getElementById("Set").onclick = setLengths
-
-    </script>
+    
+        document.getElementById("body").onload = function(e) {
+            document.getElementById("text_min_len").value = 1
+            document.getElementById("text_max_len").value = 15
+            const check = "ocr" == "plate"
+            document.getElementById("plate-usual").checked = check
+            setLengths(e)
+            onLoadCheckbox(check)
+        }
+    
+        document.getElementById("plate-usual").onchange = function(){
+            if (this.checked)
+            {
+                document.getElementById("text_01").style.display = "inline";
+                document.getElementById("text_01").style.width = "10%";
+                //document.getElementById("text_01").minLength = "2";
+                //document.getElementById("text_01").maxLength = "2";
+    
+                document.getElementById("text_02").style.display = "inline";
+                document.getElementById("text_03").style.display = "inline";
+    
+                document.getElementById("text_min_len").disabled = true;
+                document.getElementById("text_max_len").disabled = true;
+    
+            
+                document.getElementById("text_min_len").value = 3
+                document.getElementById("text_max_len").value = 3
+    
+            }
+            else
+            {
+                //document.getElementById("text_01").style.width = "35%";
+                //document.getElementById("text_01").minLength = "1";
+                //document.getElementById("text_01").maxLength = "25";
+    
+                document.getElementById("text_02").style.display = "none";
+                document.getElementById("text_03").style.display = "none";
+    
+                document.getElementById("text_min_len").disabled = false;
+                document.getElementById("text_max_len").disabled = false;
+    
+                document.getElementById("text_min_len").value = 10
+                document.getElementById("text_max_len").value = 10
+    
+            }
+    
+        }
+    
+        document.getElementById("Set").onclick = setLengths
+    
+        </script>
+</body>
 </html>
