@@ -25,7 +25,7 @@ def add_header(r):
 
 
 # fetch cursor file
-cursor = Cursor(data_dir=DATA_PATH)
+cursor = Cursor(data_dir=DATA_PATH, labeled_dir=RESULTS_PATH)
 logger = get_logger("app", split_extension(cursor.cursor_path, extension=".log"))
 
 
@@ -34,8 +34,12 @@ logger = get_logger("app", split_extension(cursor.cursor_path, extension=".log")
 @app.route('/')
 def index():
     cursor.reload_file()
-    text = os.path.splitext(cursor['images'][str(cursor['file_index_to_read'])])[0]
-
+    image_name = cursor.get_next_image()
+    if image_name is None:
+        # Handle case when no more images are available
+        return render_template('no_more_images.html')
+    
+    text = os.path.splitext(image_name)[0]
     index = cursor['file_index_to_read']
     images_count = len(cursor['images'])
     use_case = cursor['use_case']
@@ -52,12 +56,12 @@ def index():
     else:
         raise ValueError("USE_CASE type is not valid")
     remove_create("static/ocr_images")
-    image_name = cursor['images'][str(cursor['file_index_to_read'])]
     photo = os.path.join(DATA_PATH, image_name)
     dst = os.path.join("static/ocr_images", image_name)
     shutil.copy(photo, dst)
     return render_template('index.html', text_01=text_01, text_02=text_02, text_03=text_03, text=text, photo=image_name,
     min_length=min_length, max_length=max_length, index=index, images_count=images_count, use_case=use_case.lower())
+
 
 
 @app.route('/action', methods=['POST', 'GET'])
