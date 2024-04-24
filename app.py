@@ -1,7 +1,9 @@
 import shutil
-from flask import Flask, render_template, request, redirect, url_for
 import os
 from cursor import Cursor
+from flask_httpauth import HTTPBasicAuth
+from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 from settings import DATA_PATH, TEXT_MAX_LEN, RESULTS_PATH, PORT, USE_CASE
 from deep_utils import remove_create, log_print, get_logger, split_extension
 
@@ -13,6 +15,23 @@ app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 min_length = 1
 max_length = 15
+
+app = Flask(__name__)
+auth = HTTPBasicAuth()
+
+with open('.secrets', 'r') as f:
+    ph = f.read().strip()
+print(ph)
+# yes move this to .secrets
+users = {
+   "labeler": ph,   
+}
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and \
+            check_password_hash(users.get(username), password):
+        return username
 
 
 @app.after_request
@@ -32,6 +51,7 @@ logger = get_logger("app", split_extension(cursor.cursor_path, extension=".log")
 # app routes
 @app.route('/index')
 @app.route('/')
+@auth.login_required
 def index():
     cursor.reload_file()
     image_name = cursor.get_next_image()
