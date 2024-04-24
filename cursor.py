@@ -1,12 +1,14 @@
 import os
 from os.path import isfile, join
 from deep_utils import dump_json, load_json
+import time
 
 
 class Cursor:
-    def __init__(self, data_dir, labeled_dir):
+    def __init__(self, data_dir, labeled_dir, cache_timeout=10):
         self.data_dir = data_dir
         self.labeled_dir = labeled_dir
+        self.cache_timeout = cache_timeout  # Cache timeout in seconds
         if not os.path.isdir(self.data_dir):
             raise NotADirectoryError(
                 f"dataset: {self.data_dir} is not a directory!")
@@ -17,7 +19,8 @@ class Cursor:
         self.cursor_path = join(
             dir_, f"ocr-labeling-cursor-{name}-cursor.json")
         self._cursor_dict = self._initialize()
-        self.image_cache = self._initialize_cache()
+        self.image_cache = set()
+        self.last_access_times = {}
 
     def __str__(self) -> str:
         return str(self._cursor_dict)
@@ -50,13 +53,6 @@ class Cursor:
         # Open cursor file
         cursor = load_json(self.cursor_path)
         return cursor
-
-    def _initialize_cache(self):
-        """
-        Initializes image cache.
-        """
-        labeled_files = os.listdir(self.labeled_dir)
-        return set(labeled_files)
 
     def set_index(self, index: int):
         """
@@ -94,16 +90,18 @@ class Cursor:
         while ensuring it is not already labeled and not being accessed by another user.
         """
         index_to_read = self._cursor_dict['file_index_to_read']
+        current_time = time.time()
         while True:
             if str(index_to_read) not in self._cursor_dict['images']:
                 # Reached end of images
                 return None
             img_file = self._cursor_dict['images'][str(index_to_read)]
-            if img_file not in self.image_cache:
-                # Image is not already labeled
-                self.image_cache.add(img_file)
+            last_access_time = self.last_access_times.get(img_file, 0)
+            if current_time - last_access_time > self.cache_timeout:
+                # Image is not already labeled or cache has expired
+                self.last_access_times[img_file] = current_time
                 return img_file
             else:
-                # Image is already labeled, move to the next one
+                # Image is already labeled or cache is still valid, move to the next one
                 index_to_read += 1
                 self.set_index(index_to_read)
