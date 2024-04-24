@@ -21,10 +21,10 @@ auth = HTTPBasicAuth()
 
 with open('.secrets', 'r') as f:
     ph = f.read().strip()
-print(ph)
+
 # yes move this to .secrets
 users = {
-   "labeler": ph,   
+   "labeler": ph,
 }
 
 @auth.verify_password
