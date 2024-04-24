@@ -1,11 +1,28 @@
-import shutil
 import os
+import shutil
+import requests
 from cursor import Cursor
 from flask_httpauth import HTTPBasicAuth
 from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from settings import DATA_PATH, TEXT_MAX_LEN, RESULTS_PATH, PORT, USE_CASE
 from deep_utils import remove_create, log_print, get_logger, split_extension
+
+def post_ocr_image(file_path):
+    headers = {
+        'accept': 'application/json',
+        # requests won't add a boundary if this header is set when you pass files=
+        # 'Content-Type': 'multipart/form-data',
+    }
+    params = {
+        'ret_img': 'false',
+    }
+    files = {
+        'image': (file_path, open(file_path, 'rb'), 'image/jpeg'),
+    }
+    response = requests.post('http://192.168.200.132:8000/predict/word/arshasb', params=params, headers=headers, files=files)
+    return response
+
 
 os.makedirs(RESULTS_PATH, exist_ok=True)
 
@@ -79,6 +96,8 @@ def index():
     photo = os.path.join(DATA_PATH, image_name)
     dst = os.path.join("static/ocr_images", image_name)
     shutil.copy(photo, dst)
+    res = post_ocr_image(photo).json()
+    text_01 = res['prediction']
     return render_template('index.html', text_01=text_01, text_02=text_02, text_03=text_03, text=text, photo=image_name,
     min_length=min_length, max_length=max_length, index=index, images_count=images_count, use_case=use_case.lower())
 

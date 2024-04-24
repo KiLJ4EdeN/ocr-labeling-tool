@@ -21,6 +21,7 @@ class Cursor:
         self._cursor_dict = self._initialize()
         self.image_cache = set()
         self.last_access_times = {}
+        self.labeled_indices = set()
 
     def __str__(self) -> str:
         return str(self._cursor_dict)
@@ -96,12 +97,16 @@ class Cursor:
                 # Reached end of images
                 return None
             img_file = self._cursor_dict['images'][str(index_to_read)]
-            last_access_time = self.last_access_times.get(img_file, 0)
-            if current_time - last_access_time > self.cache_timeout:
-                # Image is not already labeled or cache has expired
-                self.last_access_times[img_file] = current_time
-                return img_file
-            else:
-                # Image is already labeled or cache is still valid, move to the next one
-                index_to_read += 1
+            if img_file not in self.image_cache and index_to_read not in self.labeled_indices:
+                last_access_time = self.last_access_times.get(img_file, 0)
+                if current_time - last_access_time > self.cache_timeout:
+                    # Image is not already labeled or cache has expired
+                    self.last_access_times[img_file] = current_time
+                    return img_file
+            # Move to the next image
+            index_to_read += 1
+            if str(index_to_read) in self._cursor_dict['images']:
                 self.set_index(index_to_read)
+            else:
+                # Reached end of images, reset index
+                self.set_index(1)
