@@ -116,6 +116,14 @@ def action():
                 raise ValueError()
             if len(text) <= TEXT_MAX_LEN:
                 index = cursor['file_index_to_read']
+                # mistakes
+                os.makedirs('MISTAKES', exist_ok=True)
+                # compare ai and groundtruth label, maybe FUZZ?
+                if request.form.get('text_01') != request.form.get('text_02'):
+                    mis_path = f"{request.form.get('text_01')}_{request.form.get('text_02')}" + '.jpg'
+                    img_path = os.path.join(DATA_PATH, cursor['images'][str(index)])
+                    shutil.copy(img_path, os.path.join('MISTAKES', mis_path))
+
                 img_path = os.path.join(DATA_PATH, cursor['images'][str(index)])
                 # get file extension e.g. jpg, png
                 img_extension = os.path.splitext(img_path)[1]
